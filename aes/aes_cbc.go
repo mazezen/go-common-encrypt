@@ -38,12 +38,17 @@ const (
 	aes128KeySize uint = 16
 	aes192KeySize uint = 24
 	aes256KeySize uint = 32
+
+	fillPkcs7 string = "PKCS#7" // default fill method
+	fillZero  string = "ZeroPadding"
+	fillNo    string = "NoPadding"
 )
 
 type AesCBC struct {
 	// ======================= CBC =====================
 	key   []byte // secret key
 	block cipher.Block
+	fm    string // fill method
 }
 
 // NewAesCBC bit-words contains **AES-128**, **AES-192**, **AES-256**
@@ -51,7 +56,7 @@ type AesCBC struct {
 // - PKCS#7
 // - ZeroPadding
 // - NoPadding
-func NewAesCBC(k []byte, n uint) *AesCBC {
+func NewAesCBC(k []byte, n uint, args ...string) *AesCBC {
 	b, err := aes.NewCipher(k)
 	if err != nil {
 		panic(fmt.Errorf("NewAesCBC failed: [%+w]", err))
@@ -62,19 +67,37 @@ func NewAesCBC(k []byte, n uint) *AesCBC {
 		panic(aes.KeySizeError(n))
 	}
 
-	return &AesCBC{key: k, block: b}
+	fillMethod := fillPkcs7
+	if len(args) >= 1 && args[0] != "" {
+		fillMethod = args[0]
+	}
+
+	return &AesCBC{key: k, block: b, fm: fillMethod}
 }
 
 func (this *AesCBC) AesCBCCipher(plainText []byte) (string, error) {
 	blockSize := this.block.BlockSize()
-	padded := this.pkcs7Pad(plainText, blockSize)
+
+	var padded []byte
+	switch this.fm {
+	case fillPkcs7:
+		padded = this.pkcs7Pad(plainText, blockSize)
+	case fillZero:
+		padded = this.zeroPad(plainText, blockSize)
+	case fillNo:
+		if len(plainText)%blockSize != 0 {
+			return "", fmt.Errorf("plaintext length is not a multiple of block size (%d)", blockSize)
+		}
+		padded = plainText
+	default:
+		return "", fmt.Errorf("does not supported this mode: [%s]", this.fm)
+	}
 
 	// Offset IV Use CSPRNG (Cryptographically Secure Pseudo-Random Number Generator)
 	iv, err := random.RandomBytes(uint(blockSize))
 	if err != nil {
 		return "", fmt.Errorf("generate random IV failed: %w", err)
 	}
-	fmt.Println("===========", iv)
 
 	mode := cipher.NewCBCEncrypter(this.block, iv)
 	encrypted := make([]byte, len(padded))
@@ -108,7 +131,19 @@ func (this *AesCBC) AesCBDDecipher(cipherText string) (string, error) {
 	decrypted := make([]byte, len(cipherBytes))
 	mode.CryptBlocks(decrypted, cipherBytes)
 
-	plainText, err := this.pkcs7Unpad(decrypted)
+	var plainText []byte
+	switch this.fm {
+	case fillPkcs7:
+		plainText, err = this.pkcs7Unpad(decrypted)
+	case fillZero:
+		plainText, err = this.zeroUnpad(decrypted)
+	case fillNo:
+		if len(decrypted)%blockSize != 0 {
+			return "", fmt.Errorf("decrypted text length is not multiple of block size (%d)", blockSize)
+		}
+		plainText = decrypted
+	}
+
 	if err != nil {
 		return "", err
 	}
@@ -116,6 +151,7 @@ func (this *AesCBC) AesCBDDecipher(cipherText string) (string, error) {
 	return string(plainText), nil
 }
 
+// pkcs7Pad Recommended
 func (this *AesCBC) pkcs7Pad(plainText []byte, blockSize int) []byte {
 	padding := blockSize - len(plainText)%blockSize
 	padText := bytes.Repeat([]byte{byte(padding)}, padding)
@@ -140,4 +176,21 @@ func (this *AesCBC) pkcs7Unpad(plainText []byte) ([]byte, error) {
 	}
 
 	return plainText[:length-padding], nil
+}
+
+// zeroPad May cause inaccurate decryption when 0x00 is at the end.
+// eg: plaintext: hello\x00\x00 deciphertext: hello\x00\x0
+func (this *AesCBC) zeroPad(plainText []byte, blockSize int) []byte {
+	padding := blockSize - len(plainText)%blockSize
+	if padding == blockSize {
+		return plainText
+	}
+	padText := bytes.Repeat([]byte{0}, padding)
+	return append(plainText, padText...)
+}
+
+func (this *AesCBC) zeroUnpad(plainText []byte) ([]byte, error) {
+	return bytes.TrimFunc(plainText, func(r rune) bool {
+		return r == 0
+	}), nil
 }

@@ -47,25 +47,25 @@ AES (Advanced Encryption Standard) is a symmetric encryption algorithm and one o
 | Mode                        | IV Required | Features                                                                   | Security                                                                 | Recommendation level        | Supported |
 | :-------------------------- | :---------- | :------------------------------------------------------------------------- | :----------------------------------------------------------------------- | :-------------------------- | --------- |
 | ECB (Electronic Codebook)   | ❌          | Simplest, each block is encrypted independently                            | ❌ Very low (plaintext in the same block → ciphertext in the same block) | 🚫 Not recommended          | ✅        |
-| CBC (Cipher Block Chaining) | ✅          | Each block depends on the previous block, commonly used                    | ✅ High                                                                  | ⭐⭐⭐⭐ Recommended        | ❌        |
-| CTR (Counter)               | ✅          | Converts AES to stream encryption, supports parallel processing            | ✅ High (if the counter does not repeat)                                 | ⭐⭐⭐⭐ Recommended        | ❌        |
+| CBC (Cipher Block Chaining) | ✅          | Each block depends on the previous block, commonly used                    | ✅ High                                                                  | ⭐⭐⭐⭐ Recommended        | ✅ |
+| CTR (Counter)               | ✅          | Converts AES to stream encryption, supports parallel processing            | ✅ High (if the counter does not repeat)                                 | ⭐⭐⭐⭐ Recommended        | ❌ |
 | CFB (Cipher Feedback)       | ✅          | Similar to stream encryption, it can handle data smaller than a block size | ✅ High                                                                  | ⭐⭐ Average                | ❌        |
 | OFB (Output Feedback)       | ✅          | Similar to CFB, vulnerable to synchronization attacks                      | ⚠️ Low                                                                   | ⭐ Average, not recommended | ❌        |
 
 ##### AES Fill Method Comparison
 
-| Fill Method | Description                                                                | Advantage                                     | Shortcoming                                                | Recommendation level   | Supported |
-| :---------- | :------------------------------------------------------------------------- | :-------------------------------------------- | :--------------------------------------------------------- | :--------------------- | --------- |
-| PKCS#7      | Pads with N bytes to fill the missing N bytes                              | ✅ Universal, default in almost all libraries | ❌ Occupies extra bytes                                    | ⭐⭐⭐⭐ Recommended   | ❌        |
-| ZeroPadding | Pads with 0x00                                                             | ✅ Simple                                     | ❌ May cause inaccurate decryption when 0x00 is at the end | ⭐⭐ Special Scenarios | ❌        |
-| NoPadding   | No padding; data length must be manually guaranteed to be a multiple of 16 | ✅ No extra bytes                             | ❌ Restricted use                                          | ⭐ Fixed length only   | ❌        |
+| Fill Method | Description                                                                | Advantage                                     | Shortcoming                                                | Recommendation level   |
+| :---------- | :------------------------------------------------------------------------- | :-------------------------------------------- | :--------------------------------------------------------- | :--------------------- |
+| PKCS#7      | Pads with N bytes to fill the missing N bytes                              | ✅ Universal, default in almost all libraries | ❌ Occupies extra bytes                                    | ⭐⭐⭐⭐ Recommended   |
+| ZeroPadding | Pads with 0x00                                                             | ✅ Simple                                     | ❌ May cause inaccurate decryption when 0x00 is at the end | ⭐⭐ Special Scenarios |
+| NoPadding   | No padding; data length must be manually guaranteed to be a multiple of 16 | ✅ No extra bytes                             | ❌ Restricted use                                          | ⭐ Fixed length only   |
 
 ### Unit Test Coverage
 
 ```bash
 go test -cover ./...
 
-ok  	github.com/mazezen/go-common-encrypt/aes	0.014s	coverage: 78.7% of statements
-ok  	github.com/mazezen/go-common-encrypt/hash	0.014s	coverage: 95.5% of statements
-ok  	github.com/mazezen/go-common-encrypt/random	0.016s	coverage: 73.5% of statements
+ok  	github.com/mazezen/go-common-encrypt/aes	0.010s	coverage: 79.7% of statements
+ok  	github.com/mazezen/go-common-encrypt/hash	(cached)	coverage: 95.5% of statements
+ok  	github.com/mazezen/go-common-encrypt/random	(cached)	coverage: 73.5% of statements
 ```

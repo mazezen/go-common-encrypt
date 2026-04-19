@@ -35,9 +35,9 @@ const (
 	// AES-256 has 256-bit keys, 14 rounds, and uses 15 128-bit round keys
 	// (15×128÷32 = 60 32-bit words).
 
-	aes128KeySize uint = 16
-	aes192KeySize uint = 24
-	aes256KeySize uint = 32
+	// aes128KeySize uint = 16
+	// aes192KeySize uint = 24
+	// aes256KeySize uint = 32
 
 	fillPkcs7 string = "PKCS#7" // default fill method
 	fillZero  string = "ZeroPadding"
@@ -45,10 +45,9 @@ const (
 )
 
 type AesCBC struct {
-	// ======================= CBC =====================
 	key   []byte // secret key
 	block cipher.Block
-	fm    string // fill method
+	fm    string // fill mode
 }
 
 // NewAesCBC bit-words contains **AES-128**, **AES-192**, **AES-256**
@@ -56,23 +55,18 @@ type AesCBC struct {
 // - PKCS#7
 // - ZeroPadding
 // - NoPadding
-func NewAesCBC(k []byte, n uint, args ...string) *AesCBC {
+func NewAesCBC(k []byte, args ...string) *AesCBC {
 	b, err := aes.NewCipher(k)
 	if err != nil {
 		panic(fmt.Errorf("NewAesCBC failed: [%+w]", err))
 	}
-	switch n {
-	case aes128KeySize, aes192KeySize, aes256KeySize:
-	default:
-		panic(aes.KeySizeError(n))
-	}
 
-	fillMethod := fillPkcs7
+	fillMode := fillPkcs7
 	if len(args) >= 1 && args[0] != "" {
-		fillMethod = args[0]
+		fillMode = args[0]
 	}
 
-	return &AesCBC{key: k, block: b, fm: fillMethod}
+	return &AesCBC{key: k, block: b, fm: fillMode}
 }
 
 func (this *AesCBC) AesCBCCipher(plainText []byte) (string, error) {
@@ -81,9 +75,9 @@ func (this *AesCBC) AesCBCCipher(plainText []byte) (string, error) {
 	var padded []byte
 	switch this.fm {
 	case fillPkcs7:
-		padded = this.pkcs7Pad(plainText, blockSize)
+		padded = pkcs7Pad(plainText, blockSize)
 	case fillZero:
-		padded = this.zeroPad(plainText, blockSize)
+		padded = zeroPad(plainText, blockSize)
 	case fillNo:
 		if len(plainText)%blockSize != 0 {
 			return "", fmt.Errorf("plaintext length is not a multiple of block size (%d)", blockSize)
@@ -108,7 +102,7 @@ func (this *AesCBC) AesCBCCipher(plainText []byte) (string, error) {
 	return base64.StdEncoding.EncodeToString(final), nil
 }
 
-func (this *AesCBC) AesCBDDecipher(cipherText string) (string, error) {
+func (this *AesCBC) AesCBCDecipher(cipherText string) (string, error) {
 	b, err := base64.StdEncoding.DecodeString(cipherText)
 	if err != nil {
 		return "", err
@@ -134,9 +128,9 @@ func (this *AesCBC) AesCBDDecipher(cipherText string) (string, error) {
 	var plainText []byte
 	switch this.fm {
 	case fillPkcs7:
-		plainText, err = this.pkcs7Unpad(decrypted)
+		plainText, err = pkcs7Unpad(decrypted)
 	case fillZero:
-		plainText, err = this.zeroUnpad(decrypted)
+		plainText, err = zeroUnpad(decrypted)
 	case fillNo:
 		if len(decrypted)%blockSize != 0 {
 			return "", fmt.Errorf("decrypted text length is not multiple of block size (%d)", blockSize)
@@ -152,13 +146,13 @@ func (this *AesCBC) AesCBDDecipher(cipherText string) (string, error) {
 }
 
 // pkcs7Pad Recommended
-func (this *AesCBC) pkcs7Pad(plainText []byte, blockSize int) []byte {
+func pkcs7Pad(plainText []byte, blockSize int) []byte {
 	padding := blockSize - len(plainText)%blockSize
 	padText := bytes.Repeat([]byte{byte(padding)}, padding)
 	return append(plainText, padText...)
 }
 
-func (this *AesCBC) pkcs7Unpad(plainText []byte) ([]byte, error) {
+func pkcs7Unpad(plainText []byte) ([]byte, error) {
 	length := len(plainText)
 	if length == 0 {
 		return nil, fmt.Errorf("invalid padding size")
@@ -180,7 +174,7 @@ func (this *AesCBC) pkcs7Unpad(plainText []byte) ([]byte, error) {
 
 // zeroPad May cause inaccurate decryption when 0x00 is at the end.
 // eg: plaintext: hello\x00\x00 deciphertext: hello\x00\x0
-func (this *AesCBC) zeroPad(plainText []byte, blockSize int) []byte {
+func zeroPad(plainText []byte, blockSize int) []byte {
 	padding := blockSize - len(plainText)%blockSize
 	if padding == blockSize {
 		return plainText
@@ -189,7 +183,7 @@ func (this *AesCBC) zeroPad(plainText []byte, blockSize int) []byte {
 	return append(plainText, padText...)
 }
 
-func (this *AesCBC) zeroUnpad(plainText []byte) ([]byte, error) {
+func zeroUnpad(plainText []byte) ([]byte, error) {
 	return bytes.TrimFunc(plainText, func(r rune) bool {
 		return r == 0
 	}), nil

@@ -21,124 +21,116 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var (
-	key128 = []byte("1ockKIb8Kg6s4uc8")
-	key192 = []byte("1ockKIb8Kg6s4uc8opkljuhh")
-	key256 = []byte("1ockKIb8Kg6s4uc8opkljuhhklkj78hu")
-
-	plainText           = `hello\x00\x00`
-	painTextNoPadding16 = `hellohellohehehe`               // 16
-	painTextNoPadding24 = `hellohellohehehe99001122`       // 24
-	painTextNoPadding32 = `hellohellohehehe9900112234uhyu` // 32
-	plainOFBText        = `this is a code repository dedicated to encryption. It encompasses several common encryption methods that can be directly utilized in projects. Includes [SHA] and [MAC] and [CSPRNG] and [AES]Topics`
-	plainCTRText        = `Converts AES to stream encryption, supports parallel processing`
-)
-
-func TestNewAesCBC(t *testing.T) {
+func TestNewAesCTR(t *testing.T) {
 	type args struct {
-		k  []byte
-		fm string
+		key []byte
+		fm  string
 	}
 	tests := []struct {
 		name      string
 		args      args
 		plainText string
 	}{
-		{
-			name: "Test AES-CBC-PKCS7 AES-128",
-			args: args{
-				k: key128,
-				// fm: "PKCS#7",
-			},
-			plainText: plainText,
-		},
-		{
-			name: "Test AES-CBC-PKCS7 AES-192",
-			args: args{
-				k:  key192,
-				fm: "PKCS#7",
-			},
-			plainText: plainText,
-		},
-		{
-			name: "Test AES-CBC-PKCS7 AES-256",
-			args: args{
-				k:  key256,
-				fm: "PKCS#7",
-			},
-			plainText: plainText,
-		},
 		// -----------------------------------------------------------------
+		// AES-CTR-128 PKCS#7
 		{
-			name: "Test AES-CBC-ZeroPadding AES-128",
+			name: "AES-CTR-128-PKCS#7",
 			args: args{
-				k:  key128,
-				fm: "ZeroPadding",
+				key: key128,
+				fm:  "PKCS#7",
 			},
-			plainText: plainText,
+			plainText: plainCTRText,
 		},
+		// AES-CTR-192 PKCS#7
 		{
-			name: "Test AES-CBC-ZeroPadding AES-192",
+			name: "AES-CTR-192-PKCS#7",
 			args: args{
-				k:  key192,
-				fm: "ZeroPadding",
+				key: key192,
+				fm:  "PKCS#7",
 			},
-			plainText: plainText,
+			plainText: plainCTRText,
 		},
+		// AES-CTR-256 PKCS#7
 		{
-			name: "Test AES-CBC-ZeroPadding AES-256",
+			name: "AES-CTR-256-PKCS#7",
 			args: args{
-				k:  key256,
-				fm: "ZeroPadding",
+				key: key256,
+				fm:  "PKCS#7",
 			},
-			plainText: plainText,
+			plainText: plainCTRText,
 		},
 
 		// -----------------------------------------------------------------
+		// AES-CTR-128 ZeroPadding
 		{
-			name: "Test AES-CBC-NoPadding AES-128",
+			name: "AES-CTR-128-ZeroPadding",
 			args: args{
-				k:  key128,
-				fm: "NoPadding",
+				key: key128,
+				fm:  "ZeroPadding",
 			},
-			plainText: painTextNoPadding16,
+			plainText: plainCTRText,
 		},
+		// AES-CTR-192 ZeroPadding
 		{
-			name: "Test AES-CBC-NoPadding AES-192",
+			name: "AES-CTR-192-ZeroPadding",
 			args: args{
-				k:  key192,
-				fm: "NoPadding",
+				key: key192,
+				fm:  "ZeroPadding",
 			},
-			plainText: painTextNoPadding24,
+			plainText: plainCTRText,
 		},
+		// AES-CTR-256 ZeroPadding
 		{
-			name: "Test AES-CBC-NoPadding AES-256",
+			name: "AES-CTR-256-ZeroPadding",
 			args: args{
-				k:  key256,
-				fm: "NoPadding",
+				key: key256,
+				fm:  "ZeroPadding",
 			},
-			plainText: painTextNoPadding32,
+			plainText: plainCTRText,
+		},
+
+		// -----------------------------------------------------------------
+		// AES-CTR-128 NoPadding
+		{
+			name: "AES-CTR-128-NoPadding",
+			args: args{
+				key: key128,
+				fm:  "NoPadding",
+			},
+			plainText: plainCTRText,
+		},
+		// AES-CTR-192 NoPadding
+		{
+			name: "AES-CTR-192-NoPadding",
+			args: args{
+				key: key192,
+				fm:  "NoPadding",
+			},
+			plainText: plainCTRText,
+		},
+		// AES-CTR-256 NoPadding
+		{
+			name: "AES-CTR-256-NoPadding",
+			args: args{
+				key: key256,
+				fm:  "NoPadding",
+			},
+			plainText: plainCTRText,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if len(tt.plainText)%16 != 0 && tt.args.fm == "NoPadding" {
-				t.Logf("Skipping NoPadding test: plaintext length is not a multiple of 16")
-				return
-			}
-			aesCBC := NewAesCBC(tt.args.k, tt.args.fm)
-			cipherText, err := aesCBC.AesCBCCipher([]byte(tt.plainText))
+			aesCTR := NewAesCTR(tt.args.key)
+			cipherText, err := aesCTR.AesCTREncrypt([]byte(tt.plainText))
 			assert.NoError(t, err, fmt.Sprintf("%s encrypt failed", tt.name))
 			assert.NotEmpty(t, cipherText, "cipherText should not be empty")
-
 			// fmt.Println("==================================================================")
 			// fmt.Printf("------- ciphertext: %s\n", cipherText)
 			// fmt.Println("==================================================================")
 
-			decipherPlainText, err := aesCBC.AesCBCDecipher(cipherText)
+			decipherPlainText, err := aesCTR.AesCTRDecrypt(cipherText)
 			assert.NoError(t, err, fmt.Sprintf("%s decrypt failed", tt.name))
-			assert.Equal(t, tt.plainText, decipherPlainText, "decrypted text should match original")
-
+			assert.Equal(t, tt.plainText, decipherPlainText, fmt.Sprintf("%s decrypted text should match original", tt.name))
 			// fmt.Println("==================================================================")
 			// fmt.Printf("------- decipherPlainText: %s\n", decipherPlainText)
 			// fmt.Println("==================================================================")

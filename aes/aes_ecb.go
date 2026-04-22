@@ -16,15 +16,12 @@ package aes
 
 import (
 	"crypto/aes"
-	"crypto/cipher"
 	"encoding/base64"
 	"fmt"
 )
 
 type AesECB struct {
-	key   []byte // secret key
-	block cipher.Block
-	fm    string // fill mode
+	base
 }
 
 // NewAesECB bit-words contains **AES-128**, **AES-192**, **AES-256**
@@ -32,8 +29,8 @@ type AesECB struct {
 // - PKCS#7
 // - ZeroPadding
 // - NoPadding
-func NewAesECB(key []byte, args ...string) *AesECB {
-	b, err := aes.NewCipher(key)
+func NewAesECB(k []byte, args ...string) *AesECB {
+	b, err := aes.NewCipher(k)
 	if err != nil {
 		panic(fmt.Errorf("NewAesECB failed: [%+w]", err))
 	}
@@ -43,25 +40,15 @@ func NewAesECB(key []byte, args ...string) *AesECB {
 		fillMode = args[0]
 	}
 
-	return &AesECB{key: key, block: b, fm: fillMode}
+	return &AesECB{base: base{key: k, block: b, fm: fillMode}}
 }
 
 func (this *AesECB) AesECBEnrypt(plainText []byte) (string, error) {
 	blockSize := this.block.BlockSize()
 
-	var padded []byte
-	switch this.fm {
-	case fillPkcs7:
-		padded = pkcs7Pad(plainText, blockSize)
-	case fillZero:
-		padded = zeroPad(plainText, blockSize)
-	case fillNo:
-		if len(plainText)%blockSize != 0 {
-			return "", fmt.Errorf("plaintext length is not a multiple of block size (%d)", blockSize)
-		}
-		padded = plainText
-	default:
-		return "", fmt.Errorf("does not supported this mode: [%s]", this.fm)
+	padded, err := fillCipher(this.fm, plainText, blockSize)
+	if err != nil {
+		return "", nil
 	}
 
 	ciphertext := make([]byte, len(padded))
@@ -88,21 +75,10 @@ func (this *AesECB) AesECBDecrypt(cipherText string) (string, error) {
 		this.block.Decrypt(plaintext[i:i+bs], cipertext[i:i+bs])
 	}
 
-	var plainText []byte
-	switch this.fm {
-	case fillPkcs7:
-		plainText, err = pkcs7Unpad(plaintext)
-	case fillZero:
-		plainText, err = zeroUnpad(plaintext)
-	case fillNo:
-		if len(plaintext)%bs != 0 {
-			return "", fmt.Errorf("decrypted text length is not multiple of block size (%d)", bs)
-		}
-		plainText = plaintext
+	plainText, err := unpackDecipher(this.fm, plaintext, bs)
+	if err != nil {
+		return "", fmt.Errorf("unpack decrypt err: [%+w]", err)
 	}
 
-	if err != nil {
-		return "", err
-	}
 	return string(plainText), nil
 }

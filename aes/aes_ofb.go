@@ -24,9 +24,7 @@ import (
 )
 
 type AesOFB struct {
-	key   []byte
-	block cipher.Block
-	fm    string
+	base
 }
 
 // NewAesOFB bit-words contains **AES-128**, **AES-192**, **AES-256**
@@ -48,7 +46,7 @@ func NewAesOFB(k []byte, args ...string) *AesOFB {
 		fillMode = args[0]
 	}
 
-	return &AesOFB{key: k, block: b, fm: fillMode}
+	return &AesOFB{base: base{key: k, block: b, fm: fillMode}}
 }
 
 // AesOFBEncrypt
@@ -58,19 +56,9 @@ func NewAesOFB(k []byte, args ...string) *AesOFB {
 func (this *AesOFB) AesOFBEncrypt(plainText []byte) (string, error) {
 	blockSize := this.block.BlockSize()
 
-	var padded []byte
-	switch this.fm {
-	case fillPkcs7:
-		padded = pkcs7Pad(plainText, blockSize)
-	case fillZero:
-		padded = zeroPad(plainText, blockSize)
-	case fillNo:
-		if len(plainText)%blockSize != 0 {
-			return "", fmt.Errorf("plaintext length is not a multiple of block size (%d)", blockSize)
-		}
-		padded = plainText
-	default:
-		return "", fmt.Errorf("does not supported this mode: [%s]", this.fm)
+	padded, err := fillCipher(this.fm, plainText, blockSize)
+	if err != nil {
+		return "", nil
 	}
 
 	// Offset IV Use CSPRNG (Cryptographically Secure Pseudo-Random Number Generator)
@@ -114,19 +102,7 @@ func (this *AesOFB) AesOFBDecrypt(cipherText string) (string, error) {
 	decrypted := make([]byte, len(cipherBytes))
 	Stream.XORKeyStream(decrypted, cipherBytes)
 
-	var plainText []byte
-	switch this.fm {
-	case fillPkcs7:
-		plainText, err = pkcs7Unpad(decrypted)
-	case fillZero:
-		plainText, err = zeroUnpad(decrypted)
-	case fillNo:
-		if len(decrypted)%blockSize != 0 {
-			return "", fmt.Errorf("decrypted text length is not multiple of block size (%d)", blockSize)
-		}
-		plainText = decrypted
-	}
-
+	plainText, err := unpackDecipher(this.fm, decrypted, blockSize)
 	if err != nil {
 		return "", fmt.Errorf("unpack decrypt err: [%+w]", err)
 	}

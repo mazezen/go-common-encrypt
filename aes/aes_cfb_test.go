@@ -11,7 +11,6 @@
 *
 * wiki: https://en.wikipedia.org/wiki/Advanced_Encryption_Standard
 **/
-
 package aes
 
 import (
@@ -21,7 +20,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewAesOFB(t *testing.T) {
+func TestNewAesCFB(t *testing.T) {
 	type args struct {
 		key []byte
 		fm  string
@@ -32,27 +31,27 @@ func TestNewAesOFB(t *testing.T) {
 		plainText string
 	}{
 		// -----------------------------------------------------------------
-		// AES-OFB-128 PKCS#7
+		// AES-CFB-128 PKCS#7
 		{
-			name: "AES-OFB-128-PKCS#7",
+			name: "AES-CFB-128-PKCS#7",
 			args: args{
 				key: key128,
 				fm:  "PKCS#7",
 			},
 			plainText: plainOFBText,
 		},
-		// AES-OFB-192 PKCS#7
+		// AES-CFB-192 PKCS#7
 		{
-			name: "AES-OFB-192-PKCS#7",
+			name: "AES-CFB-192-PKCS#7",
 			args: args{
 				key: key192,
 				fm:  "PKCS#7",
 			},
 			plainText: plainOFBText,
 		},
-		// AES-OFB-256 PKCS#7
+		// AES-CFB-256 PKCS#7
 		{
-			name: "AES-OFB-256-PKCS#7",
+			name: "AES-CFB-256-PKCS#7",
 			args: args{
 				key: key256,
 				fm:  "PKCS#7",
@@ -61,27 +60,27 @@ func TestNewAesOFB(t *testing.T) {
 		},
 
 		// -----------------------------------------------------------------
-		// AES-OFB-128 ZeroPadding
+		// AES-CFB-128 ZeroPadding
 		{
-			name: "AES-OFB-128-ZeroPadding",
+			name: "AES-CFB-128-ZeroPadding",
 			args: args{
 				key: key128,
 				fm:  "ZeroPadding",
 			},
 			plainText: plainOFBText,
 		},
-		// AES-OFB-192 ZeroPadding
+		// AES-CFB-192 ZeroPadding
 		{
-			name: "AES-OFB-192-ZeroPadding",
+			name: "AES-CFB-192-ZeroPadding",
 			args: args{
 				key: key192,
 				fm:  "ZeroPadding",
 			},
 			plainText: plainOFBText,
 		},
-		// AES-OFB-256 ZeroPadding
+		// AES-CFB-256 ZeroPadding
 		{
-			name: "AES-OFB-256-ZeroPadding",
+			name: "AES-CFB-256-ZeroPadding",
 			args: args{
 				key: key256,
 				fm:  "ZeroPadding",
@@ -90,27 +89,27 @@ func TestNewAesOFB(t *testing.T) {
 		},
 
 		// -----------------------------------------------------------------
-		// AES-OFB-128 NoPadding
+		// AES-CFB-128 NoPadding
 		{
-			name: "AES-OFB-128-NoPadding",
+			name: "AES-CFB-128-NoPadding",
 			args: args{
 				key: key128,
 				fm:  "NoPadding",
 			},
 			plainText: plainOFBText,
 		},
-		// AES-ECB-192 NoPadding
+		// AES-CFB-192 NoPadding
 		{
-			name: "AES-OFB-192-NoPadding",
+			name: "AES-CFB-192-NoPadding",
 			args: args{
 				key: key192,
 				fm:  "NoPadding",
 			},
 			plainText: plainOFBText,
 		},
-		// AES-OFB-256 NoPadding
+		// AES-CFB-256 NoPadding
 		{
-			name: "AES-OFB-256-NoPadding",
+			name: "AES-CFB-256-NoPadding",
 			args: args{
 				key: key256,
 				fm:  "NoPadding",
@@ -120,15 +119,15 @@ func TestNewAesOFB(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			aesOFB := NewAesOFB(tt.args.key)
-			cipherText, err := aesOFB.AesOFBEncrypt([]byte(tt.plainText))
+			aesOFB := NewAesCFB(tt.args.key)
+			cipherText, err := aesOFB.AesCFBEncrypt([]byte(tt.plainText))
 			assert.NoError(t, err, fmt.Sprintf("%s encrypt failed", tt.name))
 			assert.NotEmpty(t, cipherText, "cipherText should not be empty")
 			// fmt.Println("==================================================================")
 			// fmt.Printf("------- ciphertext: %s\n", cipherText)
 			// fmt.Println("==================================================================")
 
-			decipherPlainText, err := aesOFB.AesOFBDecrypt(cipherText)
+			decipherPlainText, err := aesOFB.AesCFBDecrypt(cipherText)
 			assert.NoError(t, err, fmt.Sprintf("%s decrypt failed", tt.name))
 			assert.Equal(t, tt.plainText, decipherPlainText, fmt.Sprintf("%s decrypted text should match original", tt.name))
 			// fmt.Println("==================================================================")

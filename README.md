@@ -49,8 +49,8 @@ AES (Advanced Encryption Standard) is a symmetric encryption algorithm and one o
 | ECB (Electronic Codebook)   | ❌          | Simplest, each block is encrypted independently                            | ❌ Very low (plaintext in the same block → ciphertext in the same block) | 🚫 Not recommended          | ✅        |
 | CBC (Cipher Block Chaining) | ✅          | Each block depends on the previous block, commonly used                    | ✅ High                                                                  | ⭐⭐⭐⭐ Recommended        | ✅        |
 | CTR (Counter)               | ✅          | Converts AES to stream encryption, supports parallel processing            | ✅ High (if the counter does not repeat)                                 | ⭐⭐⭐⭐ Recommended        | ❌        |
-| CFB (Cipher Feedback)       | ✅          | Similar to stream encryption, it can handle data smaller than a block size | ✅ High                                                                  | ⭐⭐ Average                | ❌        |
-| OFB (Output Feedback)       | ✅          | Similar to CFB, vulnerable to synchronization attacks                      | ⚠️ Low                                                                   | ⭐ Average, not recommended | ❌        |
+| CFB (Cipher Feedback)       | ✅          | Similar to stream encryption, it can handle data smaller than a block size | ✅ High                                                                  | ⭐⭐ Average                | ✅       |
+| OFB (Output Feedback)       | ✅          | Similar to CFB, vulnerable to synchronization attacks                      | ⚠️ Low                                                                   | ⭐ Average, not recommended | ✅       |
 
 ##### AES Fill Method Comparison
 

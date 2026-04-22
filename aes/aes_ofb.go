@@ -79,7 +79,7 @@ func (this *AesOFB) AesOFBEncrypt(plainText []byte) (string, error) {
 		return "", fmt.Errorf("generate random IV failed: %w", err)
 	}
 
-	stream := cipher.NewCFBEncrypter(this.block, iv)
+	stream := cipher.NewOFB(this.block, iv)
 	encrypted := make([]byte, len(padded))
 	stream.XORKeyStream(encrypted, padded)
 
@@ -110,7 +110,7 @@ func (this *AesOFB) AesOFBDecrypt(cipherText string) (string, error) {
 		return "", fmt.Errorf("ciphertext is not a multiple of the block size")
 	}
 
-	Stream := cipher.NewCFBDecrypter(this.block, iv)
+	Stream := cipher.NewOFB(this.block, iv)
 	decrypted := make([]byte, len(cipherBytes))
 	Stream.XORKeyStream(decrypted, cipherBytes)
 

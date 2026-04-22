@@ -30,6 +30,7 @@ var (
 	painTextNoPadding16 = `hellohellohehehe`               // 16
 	painTextNoPadding24 = `hellohellohehehe99001122`       // 24
 	painTextNoPadding32 = `hellohellohehehe9900112234uhyu` // 32
+	plainOFBText        = `this is a code repository dedicated to encryption. It encompasses several common encryption methods that can be directly utilized in projects. Includes [SHA] and [MAC] and [CSPRNG] and [AES]Topics`
 )
 
 func TestNewAesCBC(t *testing.T) {

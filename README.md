@@ -1,7 +1,13 @@
 ## go-common-encrypt
 
 > This is a code repository dedicated to encryption. It encompasses several common encryption methods that can be directly utilized in projects.
-> It includes [SHA] and [MAC] and [CSPRNG] and [AES]
+> It includes [SHA] and [MAC] and [CSPRNG] and [AES] and [RSA]
+
+### Install
+
+```bash
+go get github.com/mazezen/go-common-encrypt@latest
+```
 
 ### <a href="https://zh.wikipedia.org/wiki/SHA%E5%AE%B6%E6%97%8F">SHA(Secure Hash Algorithm)</a>
 
@@ -48,7 +54,7 @@ AES (Advanced Encryption Standard) is a symmetric encryption algorithm and one o
 | :-------------------------- | :---------- | :------------------------------------------------------------------------- | :----------------------------------------------------------------------- | :-------------------------- | --------- |
 | ECB (Electronic Codebook)   | ❌          | Simplest, each block is encrypted independently                            | ❌ Very low (plaintext in the same block → ciphertext in the same block) | 🚫 Not recommended          | ✅        |
 | CBC (Cipher Block Chaining) | ✅          | Each block depends on the previous block, commonly used                    | ✅ High                                                                  | ⭐⭐⭐⭐ Recommended        | ✅        |
-| CTR (Counter)               | ✅          | Converts AES to stream encryption, supports parallel processing            | ✅ High (if the counter does not repeat)                                 | ⭐⭐⭐⭐ Recommended        | ✅       |
+| CTR (Counter)               | ✅          | Converts AES to stream encryption, supports parallel processing            | ✅ High (if the counter does not repeat)                                 | ⭐⭐⭐⭐ Recommended        | ✅        |
 | CFB (Cipher Feedback)       | ✅          | Similar to stream encryption, it can handle data smaller than a block size | ✅ High                                                                  | ⭐⭐ Average                | ✅        |
 | OFB (Output Feedback)       | ✅          | Similar to CFB, vulnerable to synchronization attacks                      | ⚠️ Low                                                                   | ⭐ Average, not recommended | ✅        |
 
@@ -59,6 +65,19 @@ AES (Advanced Encryption Standard) is a symmetric encryption algorithm and one o
 | PKCS#7      | Pads with N bytes to fill the missing N bytes                              | ✅ Universal, default in almost all libraries | ❌ Occupies extra bytes                                    | ⭐⭐⭐⭐ Recommended   |
 | ZeroPadding | Pads with 0x00                                                             | ✅ Simple                                     | ❌ May cause inaccurate decryption when 0x00 is at the end | ⭐⭐ Special Scenarios |
 | NoPadding   | No padding; data length must be manually guaranteed to be a multiple of 16 | ✅ No extra bytes                             | ❌ Restricted use                                          | ⭐ Fixed length only   |
+
+### RSA
+
+This is a lightweight Go RSA toolkit that encapsulates common operations such as key generation, PEM parsing, encryption/decryption, and signature verification.
+Based on the Go standard library's crypto/rsa, it is recommended by default to use the more secure RSA-OAEP for encryption and decryption, and RSA-PSS for signing.
+The package supports both:
+
+- RSA private key generation
+- DER/PEM encoding and decoding for PKCS#1, PKCS#8 / PKIX
+- PEM parsing of public and private keys
+- OAEP and PKCS#1 v1.5 encryption and decryption
+- PSS and PKCS#1 v1.5 signature verification
+  The PKCS#1 v1.5 related interfaces are primarily used for compatibility with legacy systems, and new code should prioritize the use of OAEP and PSS.
 
 ### Unit Test Coverage
 

@@ -1,7 +1,7 @@
 ## go-common-encrypt
 
 > This is a code repository dedicated to encryption. It encompasses several common encryption methods that can be directly utilized in projects.
-> It includes [SHA] and [MAC] and [CSPRNG] and [AES] and [RSA]
+> It includes [SHA] and [MAC] and [CSPRNG] and [AES] and [RSA] and [ECDSA]
 
 ### Install
 
@@ -81,10 +81,16 @@ The package supports both:
 
 ### Unit Test Coverage
 
-```bash
-go test -cover ./...
+### <a href="https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm">ECDSA</a>
 
-ok  	github.com/mazezen/go-common-encrypt/aes	0.012s	coverage: 78.8% of statements
-ok  	github.com/mazezen/go-common-encrypt/hash	0.009s	coverage: 95.5% of statements
-ok  	github.com/mazezen/go-common-encrypt/random	0.012s	coverage: 73.5% of statements
+In cryptography, the Elliptic Curve Digital Signature Algorithm (ECDSA) offers a variant of the Digital Signature Algorithm (DSA) which uses elliptic-curve cryptography.
+
+```bash
+go test -coverprofile=coverage.out ./...
+
+ok      github.com/mazezen/go-common-encrypt/aes        0.014s  coverage: 78.8% of statements
+ok      github.com/mazezen/go-common-encrypt/ecdsa      0.015s  coverage: 76.9% of statements
+ok      github.com/mazezen/go-common-encrypt/hash       0.012s  coverage: 95.5% of statements
+ok      github.com/mazezen/go-common-encrypt/random     0.012s  coverage: 73.5% of statements
+ok      github.com/mazezen/go-common-encrypt/rsa        1.030s  coverage: 89.0% of statements
 ```

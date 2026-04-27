@@ -79,11 +79,11 @@ The package supports both:
 - PSS and PKCS#1 v1.5 signature verification
   The PKCS#1 v1.5 related interfaces are primarily used for compatibility with legacy systems, and new code should prioritize the use of OAEP and PSS.
 
-### Unit Test Coverage
-
 ### <a href="https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm">ECDSA</a>
 
 In cryptography, the Elliptic Curve Digital Signature Algorithm (ECDSA) offers a variant of the Digital Signature Algorithm (DSA) which uses elliptic-curve cryptography.
+
+### Unit Test Coverage
 
 ```bash
 go test -coverprofile=coverage.out ./...
